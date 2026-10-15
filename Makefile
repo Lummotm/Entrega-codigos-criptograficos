@@ -1,6 +1,6 @@
 # Nombre del binario y del archivo fuente base
 TARGET = cifrador
-SRC = codigo/cifrador__68.c
+SRC = cifrador__68.c
 AUTHOR_FILE = utils/author.txt
 ZIP_NAME = entrega_cripto.zip
 
@@ -14,7 +14,7 @@ $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
 # Regla para empaquetar inyectando el autor discretamente
-zip: clean
+entrega: clean
 	@if [ ! -f $(AUTHOR_FILE) ]; then \
 		echo "Error: No existe el archivo $(AUTHOR_FILE). Créalo con tu nombre y apellidos."; \
 		exit 1; \
@@ -26,7 +26,7 @@ zip: clean
 	mv tmp_file.c $(SRC)_entrega.c
 	
 	@echo "Creando el archivo $(ZIP_NAME)..."
-	zip -r $(ZIP_NAME) $(SRC)_entrega.c $(AUTHOR_FILE) Makefile README.md
+	zip -r $(ZIP_NAME) $(SRC)_entrega.c Makefile 
 	@rm -f $(SRC)_entrega.c
 	@echo "¡Empaquetado completado con éxito!"
 

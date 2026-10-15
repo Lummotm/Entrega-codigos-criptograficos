@@ -1,6 +1,6 @@
 # Nombre del binario y del archivo fuente base
 TARGET = cifrador
-SRC = cifrador__68.c
+SRC = entrega.c
 AUTHOR_FILE = utils/author.txt
 ZIP_NAME = entrega_cripto.zip
 

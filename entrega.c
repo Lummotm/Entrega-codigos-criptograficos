@@ -22,6 +22,37 @@ short int bb,jj;
 	registro[12]=bb;
 }
 
+void limpiar_buffer(void) {
+    int hh;
+    while ((hh = getchar()) != '\n' && hh != EOF);
+}
+
+void ask_data(int *modo, unsigned char *fichero_inicial, unsigned char *fichero_final, unsigned char *clave) 
+{
+  // Funcion que hace todas las preguntas.
+  printf("Que desea hacer?\n");
+  printf("1)Cifrar\n2)Descifrar\n");
+  printf("Opcion: ");
+  scanf("%d",modo);
+  limpiar_buffer();
+
+	printf("\nEscriba el nombre del fichero de entrada:");
+	scanf("%s", fichero_inicial);
+  limpiar_buffer();
+
+	printf("\nEscriba el nombre del fichero de salida:");
+	scanf("%s", fichero_final);
+  limpiar_buffer();
+
+	printf("\nEscriba la clave (maximo 13 chars):");
+	/*scanf("%13s",clave);*/
+	fgets(clave,14,stdin);
+
+  limpiar_buffer();
+	printf("\nLa clave es: %s\n", clave);
+	printf("\n-------------------------\n");
+	printf("La longitud de la clave es %d\n",strlen(clave));
+}
 
 int main (void)
 {
@@ -30,34 +61,8 @@ int main (void)
 	unsigned char fichero_final[300];
 	unsigned char clave[14];
 	unsigned char leocaracter,escribocaracter,cifrante;
-	unsigned short int j,k,hh;
+	unsigned short int j,k;
 
-	/* Leemos el nombre del fichero a cifrar*/
-	/* Podemos recordar que no se escriban espacios en blanco*/
-
-	printf("\nEscriba el nombre del fichero que quiere cifrar o descifrar\n");
-	printf("O bien arrastre el fichero hasta esta ventana y sueltelo");
-	printf("Recuerde que para escribir \\ debe escribir \\\\\n");
-	scanf("%s", fichero_inicial);
-	while ((hh = getchar()) != '\n' && hh != EOF);
-
-	printf("\nEscriba el nombre del fichero resultante\n");
-	printf("Recuerde que para escribir \\ debe escribir \\\\\n");
-	scanf("%s", fichero_final);
-	while ((hh = getchar()) != '\n' && hh != EOF);
-	/*Leemos la clave */
-
-	printf("\nLA CLAVE: debe tener un maximo de 13 caracteres o numeros\nAPUNTALA EN UN PAPEL antes de escribirla\n");
-	printf("maximo 13 caracteres.\nEscribe la clave:");
-	printf("Si la clave tiene menos de 13 caracteres,\n se completara con el caracter (salto de linea=10)\n");
-	printf("y con caracteres nulos=0.\n\n");
-	/*scanf("%13s",clave);*/
-	fgets(clave,14,stdin);
-
-	while ((hh = getchar()) != '\n' && hh != EOF);
-	printf("\nLa clave es: %s\n", clave);
-	printf("\n-------------------------\n");
-	printf("La longitud de la clave es %d\n",strlen(clave));
 
 
 	for(j=0; j<=12; j++)

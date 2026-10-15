@@ -1,7 +1,7 @@
 # Nombre del binario y del archivo fuente base
 TARGET = cifrador
 SRC = codigo/cifrador__68.c
-AUTHOR_FILE = author.txt
+AUTHOR_FILE = utils/author.txt
 ZIP_NAME = entrega_cripto.zip
 
 # Compilador y flags

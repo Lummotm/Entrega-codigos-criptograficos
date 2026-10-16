@@ -16,6 +16,20 @@ void clean_buffer(void) {
     ;
 }
 
+static const unsigned char impares[9] = {5, 7, 9, 11, 13, 15, 17, 19, 21};
+static const unsigned char inversos[9] = {205, 183, 57, 163, 197,
+                                          239, 241, 27, 61};
+
+// Devuelve el índice de c en impares[], o -1 si no está
+// Podria haber hecho algo mas rapido una busqueda bianaria o algo asi pero no
+// le veo sentido
+int buscar_impar(unsigned char c) {
+  for (int i = 0; i < 9; i++)
+    if (impares[i] == c)
+      return i;
+  return -1;
+}
+
 void print_help(char *error_msg) {
   if (strlen((const char *)error_msg) != 0)
     printf("\n[ERROR]: %s\n", error_msg);
@@ -134,7 +148,8 @@ void avance(void) {
   bb = 3 * registro[9] + 2 * registro[2] + 5 * registro[0];
   bb = bb % 251;
 
-  for (jj = 0; jj < 12; jj++) registro[jj] = registro[jj + 1];
+  for (jj = 0; jj < 12; jj++)
+    registro[jj] = registro[jj + 1];
 
   registro[12] = bb;
 }
@@ -145,7 +160,6 @@ int main(int argc, char *argv[]) {
   // que strlen trabaje bien, sino puede dar a error
   char fichero_inicial[300] = {0};
   char fichero_final[300] = {0};
-
   unsigned char clave[14] = {0};
   unsigned char leocaracter, escribocaracter, cifrante;
 
@@ -183,18 +197,34 @@ int main(int argc, char *argv[]) {
   }
 
   fread(&leocaracter, sizeof(leocaracter), 1, fientrada);
-  /*Supongo que leer caracter a caracter es un modo de operacion muy lento,
-   * pero...*/
-
   while (feof(fientrada) == 0) {
-    cifrante = (char)registro[12]; /*pasamos a modo char; es decir en Z/(256) */
+    cifrante = (char)registro[12];
 
-    escribocaracter = leocaracter ^ cifrante; /*suma binaria XOR */
+    // escribocaracter = leocaracter ^ cifrante; /*suma binaria XOR */
+    // Para el problema 18 tenemso que cambiar esta lógica.
+
+    int idx = buscar_impar(cifrante);
+    if (cifrante % 2 == 0) {
+      if (modo == 1) // e_n = m_n + c_n
+        escribocaracter = (leocaracter + cifrante) % 256;
+      else 
+        // e_n - m_n = c_n 
+        // En principio no deberia de haber problema de negatividad
+        // estamos trabajando con unsigned char justamente por eso 
+        // Añado el + 256 para evitar ese fallo
+        escribocaracter = (leocaracter - cifrante + 256) % 256;
+    } else if (idx != -1) {
+      if (modo == 1)
+        escribocaracter = (leocaracter * cifrante) % 256;
+      else
+        escribocaracter = (leocaracter * inversos[idx]) % 256;
+    } else {
+      // Suma XOR como lo estaba ya en el programa original
+      escribocaracter = leocaracter ^ cifrante;
+    }
 
     fwrite(&escribocaracter, sizeof(escribocaracter), 1, fisalida);
-
     avance();
-
     fread(&leocaracter, sizeof(leocaracter), 1, fientrada);
   }
   fclose(fisalida);

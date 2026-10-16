@@ -1,14 +1,30 @@
 #!/usr/bin/env bash
 
-FILE1="files/a_cifrar.txt"
+FILE1="files/a_cifrar"
 FILE2="files/cifrado"
 FILE3="files/descifrado.txt"
 KEY="11234156"
 
 make all >/dev/null
-./main -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null
-./main -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null
 
-if ! diff -q "$FILE1" "$FILE3"; then
-  echo "Los archivos no son iguales"
-fi
+test() {
+  ./main -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null
+  ./main -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null
+  if ! cmp -s "$FILE1" "$FILE3"; then
+    echo "Los archivos no son iguales"
+  fi
+}
+
+# Test con urandom
+for n in 0 1 2 3 255 256 257 4095 4096 4097; do
+  head -c $n /dev/urandom >"files/a_cifrar"
+  test
+done
+
+# Test con todo ceros
+head -c 1024 /dev/zero >files/a_cifrar
+test
+
+# Test con todo 0xFF
+head -c 1024 /dev/zero | tr '\0' '\377' >files/a_cifrar
+test

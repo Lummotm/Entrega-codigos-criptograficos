@@ -94,9 +94,9 @@ void ask_missing_data(int *modo, unsigned char *fichero_inicial, unsigned char *
   }
 
   // Revisamos si el argumento existe en los flags
-
-  printf("%s\n",(char *)fichero_inicial);
-  printf("%zu",strlen((char *)fichero_inicial));
+  
+  // DEBUG: printf("%s\n",(char *)fichero_inicial);
+  // DEBUG: printf("%zu",strlen((char *)fichero_inicial));
   if (strlen((char *)fichero_inicial) == 0) {
     printf("\nEscriba el nombre del fichero de entrada: ");
     scanf("%s", fichero_inicial);
@@ -123,6 +123,8 @@ int main (int argc, char *argv[])
 {
   unsigned char fichero_inicial[300];
   unsigned char fichero_final[300];
+  // Igual cambiar a char para no tener que hacer typecasting todo el rato
+
   unsigned char clave[14];
   unsigned char leocaracter,escribocaracter,cifrante;
   unsigned short int j,k;

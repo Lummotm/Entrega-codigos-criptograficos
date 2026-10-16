@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+FILE1="files/a_cifrar.txt"
+FILE2="files/cifrado"
+FILE3="files/descifrado.txt"
+KEY="11234156"
+
+make all >/dev/null
+./main -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null
+./main -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null
+
+if ! diff -q "$FILE1" "$FILE3"; then
+  echo "Los archivos no son iguales"
+fi

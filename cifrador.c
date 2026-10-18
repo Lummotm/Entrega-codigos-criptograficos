@@ -9,7 +9,6 @@ un intento pedagogico y para recordar algo la programacion en C*/
 /*Es menos seguro el uso de variables globales, pero mas sencillo*/
 static short int registro[13] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5};
 
-// Igual demasiadas funciones auxiliares??
 void clean_buffer(void) {
   int hh;
   while ((hh = getchar()) != '\n' && hh != EOF)
@@ -31,8 +30,11 @@ int buscar_impar(unsigned char c) {
 }
 
 void print_help(char *error_msg) {
-  if (strlen((const char *)error_msg) != 0)
+  int error_code = 0;
+  if (strlen((const char *)error_msg) != 0) {
     printf("\n[ERROR]: %s\n", error_msg);
+    error_code = 1;
+  }
   printf("Uso:\n");
   printf("  ./cifrador [OPCIONES]\n\n");
   printf("Opciones disponibles:\n");
@@ -47,7 +49,7 @@ void print_help(char *error_msg) {
   printf(
       "  ./cifrador --cifrar -i texto.txt -o cifrado.bin -c miClaveSecreta\n");
   printf("  ./cifrador (modo interactivo: pedira los datos por consola)\n\n");
-  exit(0);
+  exit(error_code);
 }
 
 int file_exists(const char *filename) {
@@ -62,38 +64,44 @@ int file_exists(const char *filename) {
 /* Parseo de flags por línea de comandos */
 void check_flags(int argc, char *argv[], int *modo, char *fichero_inicial,
                  char *fichero_final, unsigned char *clave) {
-  char error_msg[] = {0};
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--cifrar") == 0 || strcmp(argv[i], "-c") == 0)
       *modo = 1;
+
     else if (strcmp(argv[i], "--descifrar") == 0 || strcmp(argv[i], "-d") == 0)
       *modo = 2;
+
     else if ((strcmp(argv[i], "--input") == 0 || strcmp(argv[i], "-i") == 0) &&
              i + 1 < argc) {
+
       if (argv[i + 1][0] == '-')
         print_help("El nombre del archivo de input no es valido.");
+
       if (file_exists(argv[i + 1]) == 1)
         print_help("El archivo de input no existe.");
 
-      strcpy(fichero_inicial, argv[i + 1]);
+      strncpy(fichero_inicial, argv[i + 1], 299);
+      fichero_inicial[299] = '\0';
       i++;
+
     } else if ((strcmp(argv[i], "--output") == 0 ||
                 strcmp(argv[i], "-o") == 0) &&
                i + 1 < argc) {
-      // Si el primer caracter de el nombre del archivo entonces asumimos que es
-      // una flag
       if (argv[i + 1][0] == '-')
         print_help("El nombre del archivo de output no es valido.");
-      strcpy(fichero_final, argv[i + 1]);
+
+      strncpy(fichero_final, argv[i + 1], 299);
+      fichero_final[299] = '\0';
       i++;
+
     } else if ((strcmp(argv[i], "--clave") == 0 ||
                 strcmp(argv[i], "-k") == 0) &&
                i + 1 < argc) {
       strncpy((char *)clave, argv[i + 1], 13);
       clave[13] = '\0';
       i++;
-    } else if (strcmp(argv[i], "--help") == 0) {
-      print_help(error_msg);
+    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+      print_help("");
     }
   }
 }
@@ -108,33 +116,44 @@ void ask_missing_data(int *modo, char *fichero_inicial, char *fichero_final,
     printf("1) Cifrar\n2) Descifrar\n");
     printf("Opcion: ");
     scanf("%d", modo);
+
     while (*modo != 1 && *modo != 2) {
       printf("Escoja una opcion valida (1 o 2): ");
       scanf("%d", modo);
     }
+
     clean_buffer();
   }
 
   if (strlen(fichero_inicial) == 0) {
     printf("\nEscriba el nombre del fichero de entrada: ");
-    scanf("%s", fichero_inicial);
+    scanf("%299s", fichero_inicial);
+
     while (file_exists(fichero_inicial) == 1) {
       printf("[ERROR]: El archivo de entrada no existe.\n");
       printf("Escriba el nombre del fichero de entrada: ");
-      scanf("%s", fichero_inicial);
+      scanf("%299s", fichero_inicial);
     }
+
     clean_buffer();
   }
 
   if (strlen(fichero_final) == 0) {
     printf("\nEscriba el nombre del fichero de salida: ");
-    scanf("%s", fichero_final);
+    scanf("%299s", fichero_final);
     clean_buffer();
   }
 
   if (strlen((char *)clave) == 0) {
     printf("\nEscriba la clave (maximo 13 chars): ");
-    fgets((char *)clave, 14, stdin);
+    if (fgets((char *)clave, 14, stdin) != NULL) {
+      int len = strlen((char *)clave);
+      if (len > 0 && clave[len - 1] == '\n')
+        clave[len - 1] = '\0';
+
+      else
+        clean_buffer();
+    }
   }
 
   printf("\nLa clave es: %s", clave);
@@ -170,11 +189,8 @@ int main(int argc, char *argv[]) {
   ask_missing_data(&modo, fichero_inicial, fichero_final, clave);
 
   for (j = 0; j <= 12; j++) {
-    if (clave[j] == '\0')
-    // Checkear nullterminated ya que fgets acaba en '\0' no el 10
-    {
+    if (clave[j] == '\0' || clave[j] == '\n')
       break;
-    };
     registro[j] = (short)clave[j] % 251;
   }
   k = registro[3];
@@ -198,19 +214,23 @@ int main(int argc, char *argv[]) {
 
   fread(&leocaracter, sizeof(leocaracter), 1, fientrada);
   while (feof(fientrada) == 0) {
-    cifrante = (char)registro[12];
+    cifrante = (unsigned char)registro[12];
 
     // escribocaracter = leocaracter ^ cifrante; /*suma binaria XOR */
-    // Para el problema 18 tenemso que cambiar esta lógica.
+    // Para el problema 18 tenemos que cambiar esta lógica.
 
+    // Dado el valor de la sucesión cifrante buscamos si esta entre los impares con los que trabajamos
+    // si esta, entonces guardamos su indice, si estamos cifrando y tenemos indice entonces trabajamos con el caso de impar, 
+    // si estamos descifrando hacemos lo mismo pero en vez de trabajar con el valor impar trabajamos con su inverso
+    
     int idx = buscar_impar(cifrante);
     if (cifrante % 2 == 0) {
       if (modo == 1) // e_n = m_n + c_n
         escribocaracter = (leocaracter + cifrante) % 256;
-      else 
-        // e_n - m_n = c_n 
+      else
+        // e_n - m_n = c_n
         // En principio no deberia de haber problema de negatividad
-        // estamos trabajando con unsigned char justamente por eso 
+        // estamos trabajando con unsigned char justamente por eso
         // Añado el + 256 para evitar ese fallo
         escribocaracter = (leocaracter - cifrante + 256) % 256;
     } else if (idx != -1) {
@@ -219,7 +239,7 @@ int main(int argc, char *argv[]) {
       else
         escribocaracter = (leocaracter * inversos[idx]) % 256;
     } else {
-      // Suma XOR como lo estaba ya en el programa original
+      // Suma XOR como estaba ya en el programa original
       escribocaracter = leocaracter ^ cifrante;
     }
 

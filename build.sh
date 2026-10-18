@@ -5,6 +5,7 @@ TARGET="main"
 SRC="cifrador.c"
 AUTHOR_FILE="utils/author.txt"
 ARCHIVO_ENTREGA="cifrador__68.c" # nombre dentro del zip
+TEST_FILE="utils/test"
 ZIP_NAME="entrega_cripto.zip"
 CC="gcc"
 CFLAGS="-Wall -Wextra -O2"
@@ -42,7 +43,7 @@ entrega() {
   # Copiamos también lo que queramos que vaya en el zip
   # cp "build.sh" "$TMP_DIR/build.sh" 2>/dev/null || true
   # Si quieres incluir el test, el Makefile, etc., añádelo aquí:
-  cp "test" "$TMP_DIR/test"
+  cp "$TEST_FILE" "$TMP_DIR/test"
 
   echo "Creando $ZIP_NAME..."
   (
@@ -59,7 +60,7 @@ all) compile ;;
 compile) compile ;;
 clean) clean ;;
 entrega) entrega ;;
-test) compile && ./test ;;
+test) compile && ./$TEST_FILE ;;
 *)
   echo "Uso: $0 {all|compile|clean|entrega|test}" >&2
   exit 1

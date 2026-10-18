@@ -6,7 +6,6 @@ FILE3="files/descifrado"
 KEY="11234156"
 
 mkdir -p files
-make all >/dev/null
 
 fail=0
 

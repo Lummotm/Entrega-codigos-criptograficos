@@ -12,13 +12,13 @@ fail=0
 test() {
   local desc="$1"
 
-  if ! ./main -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null; then
+  if ! ./main_tests -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null; then
     echo "FAIL (cifrado)  $desc"
     fail=1
     return
   fi
 
-  if ! ./main -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null; then
+  if ! ./main_tests -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null; then
     echo "FAIL (descifrado) $desc"
     fail=1
     return

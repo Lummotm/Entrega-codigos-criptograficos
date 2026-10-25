@@ -40,8 +40,8 @@ test "todo ceros (1024 bytes)"
 head -c 1024 /dev/zero | tr '\0' '\377' >"$FILE1"
 test "todo 0xFF (1024 bytes)"
 
-# Test con urandom, hasta 100 MB
-SIZE=100000000
+# Test con urandom, hasta 1000 MB
+SIZE=1000000000
 head -c $SIZE /dev/urandom >"$FILE1"
 test "urandom $SIZE bytes"
 

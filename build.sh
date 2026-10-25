@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 TARGET="main"
 SRC="cifrador.c"
@@ -7,7 +7,7 @@ AUTHOR_FILE="utils/author.txt"
 ARCHIVO_ENTREGA="cifrador__68.c" # nombre dentro del zip
 TEST_SRC="cifrador-tests.c"
 TEST_BIN="main_tests"
-TEST_FILE="utils/test"
+TEST_FILE="utils/test.sh"
 ZIP_NAME="entrega_cripto.zip"
 CC="gcc"
 CFLAGS="-Wall -Wextra -O2"
@@ -21,6 +21,7 @@ compile_tests() { "$CC" $CFLAGS "$TEST_SRC" -o "$TEST_BIN"; }
 # Limpiar
 clean() {
   rm -f "$TARGET" "$ZIP_NAME" *~ *.c_entrega
+  rm main_*
   rm -rf "$TMP_DIR"
 }
 
@@ -42,14 +43,9 @@ entrega() {
     cat "$SRC"
   } >"$TMP_DIR/$ARCHIVO_ENTREGA"
 
-  # Copiamos también lo que queramos que vaya en el zip
-  # cp "build.sh" "$TMP_DIR/build.sh" 2>/dev/null || true
-  # Si quieres incluir el test, el Makefile, etc., añádelo aquí:
-  cp "$TEST_FILE" "$TMP_DIR/test"
-
   echo "Creando $ZIP_NAME..."
   (
-    cd "$TMP_DIR"
+    cd "$TMP_DIR" || exit
     zip -r "../$ZIP_NAME" .
   )
 
@@ -58,8 +54,8 @@ entrega() {
 }
 
 case "${1:-all}" in
-all) compile ;;
-compile) compile ;;
+all) compile && compile_tests ;;
+compile) compile && compile_tests ;;
 clean) clean ;;
 entrega) entrega ;;
 test) compile && compile_tests && ./$TEST_FILE ;;

@@ -27,5 +27,4 @@ int main(int argc, char *argv[]) {
   }
   inicilizar_registro(clave);
   return procesar(modo, entrada, salida);
-  return 0;
 }

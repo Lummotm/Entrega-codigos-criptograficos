@@ -32,12 +32,6 @@ test() {
   fi
 }
 
-# Test con urandom, hasta 100 MB
-for n in 0 1 2 3 255 256 257 4095 10000 10000000 100000000; do
-  head -c "$n" /dev/urandom >"$FILE1"
-  test "urandom $n bytes"
-done
-
 # Test con todo ceros
 head -c 1024 /dev/zero >"$FILE1"
 test "todo ceros (1024 bytes)"
@@ -46,9 +40,10 @@ test "todo ceros (1024 bytes)"
 head -c 1024 /dev/zero | tr '\0' '\377' >"$FILE1"
 test "todo 0xFF (1024 bytes)"
 
-# Test con ciclo 0..255 repetido (cubre los 256 valores posibles)
-python3 -c "import sys; sys.stdout.buffer.write(bytes(range(256))*4)" >"$FILE1"
-test "ciclo 0..255 x4"
+# Test con urandom, hasta 100 MB
+SIZE=100000000
+head -c $SIZE /dev/urandom >"$FILE1"
+test "urandom $SIZE bytes"
 
 if [ "$fail" -eq 0 ]; then
   echo

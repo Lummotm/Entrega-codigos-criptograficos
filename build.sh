@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -uo pipefail
+set -euo pipefail
 
 TARGET="main"
 SRC="cifrador.c"
@@ -10,7 +10,7 @@ TEST_BIN="main_tests"
 TEST_FILE="utils/test.sh"
 ZIP_NAME="entrega_cripto.zip"
 CC="gcc"
-CFLAGS="-Wall -Wextra -O2 -Wunused-result"
+CFLAGS="-Wall -Wextra -O2 "
 TMP_DIR="tmp_entrega"
 
 # Compilar
@@ -43,7 +43,25 @@ entrega() {
     cat "$SRC"
   } >"$ARCHIVO_ENTREGA"
 
-  echo "¡Empaquetado completado con éxito!"
+  echo "Archivo creado con exito"
+}
+
+test_all() {
+  local fail=0
+  for cc in gcc clang; do
+    if ! command -v "$cc" >/dev/null; then
+      echo "$cc no instalado, lo omito"
+      continue
+    fi
+    echo "== $cc =="
+    if "$cc" $CFLAGS "$TEST_SRC" -o "${TEST_BIN}_$cc"; then
+      TEST_BIN="./${TEST_BIN}_$cc" ./$TEST_FILE || fail=1
+    else
+      echo "FAIL (compilacion con $cc)"
+      fail=1
+    fi
+  done
+  return $fail
 }
 
 case "${1:-all}" in
@@ -52,6 +70,7 @@ compile) compile && compile_tests ;;
 clean) clean ;;
 entrega) entrega ;;
 test) compile && compile_tests && ./$TEST_FILE ;;
+test_all) test_all ;;
 *)
   echo "Uso: $0 {all|compile|clean|entrega|test}" >&2
   exit 1

@@ -25,6 +25,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Uso: %s -c|-d -i entrada -o salida -k clave\n", argv[0]);
     return 2;
   }
-  inicilizar_registro(clave);
+  inicializar_registro(clave);
   return procesar(modo, entrada, salida);
 }

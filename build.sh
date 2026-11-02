@@ -10,7 +10,7 @@ TEST_BIN="main_tests"
 TEST_FILE="utils/test.sh"
 ZIP_NAME="entrega_cripto.zip"
 CC="gcc"
-CFLAGS="-Wall -Wextra -O2"
+CFLAGS="-Wall -Wextra -O2 -Wunused-result"
 TMP_DIR="tmp_entrega"
 
 # Compilar
@@ -41,15 +41,8 @@ entrega() {
   {
     echo "/* Autor: $author_name */"
     cat "$SRC"
-  } >"$TMP_DIR/$ARCHIVO_ENTREGA"
+  } >"$ARCHIVO_ENTREGA"
 
-  echo "Creando $ZIP_NAME..."
-  (
-    cd "$TMP_DIR" || exit
-    zip -r "../$ZIP_NAME" .
-  )
-
-  rm -rf "$TMP_DIR"
   echo "¡Empaquetado completado con éxito!"
 }
 

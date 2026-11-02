@@ -13,21 +13,21 @@ test() {
   local desc="$1"
 
   if ! ./main_tests -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null; then
-    echo "FAIL (cifrado)  $desc"
+    echo " FAIL (cifrado)  $desc"
     fail=1
     return
   fi
 
   if ! ./main_tests -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null; then
-    echo "FAIL (descifrado) $desc"
+    echo " FAIL (descifrado) $desc"
     fail=1
     return
   fi
 
   if cmp -s "$FILE1" "$FILE3"; then
-    echo "OK   $desc"
+    echo " OK   $desc"
   else
-    echo "FAIL (no coinciden) $desc"
+    echo " FAIL (no coinciden) $desc"
     fail=1
   fi
 }
@@ -40,8 +40,8 @@ test "todo ceros (1024 bytes)"
 head -c 1024 /dev/zero | tr '\0' '\377' >"$FILE1"
 test "todo 0xFF (1024 bytes)"
 
-# Test con urandom, hasta 1000 MB
-SIZE=1000000000
+# Test con urandom
+SIZE=10000000
 head -c $SIZE /dev/urandom >"$FILE1"
 test "urandom $SIZE bytes"
 

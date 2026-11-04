@@ -4,7 +4,7 @@
 #undef main
 
 int main(int argc, char *argv[]) {
-  char *entrada = NULL, *salida = NULL;
+  char *fichero_inicial = NULL, *fichero_final = NULL;
   unsigned char clave[14] = "";
   int modo = 0;
 
@@ -14,17 +14,26 @@ int main(int argc, char *argv[]) {
     else if (strcmp(argv[i], "-d") == 0)
       modo = 2;
     else if (i + 1 < argc && strcmp(argv[i], "-i") == 0)
-      entrada = argv[++i];
+      fichero_inicial = argv[++i];
     else if (i + 1 < argc && strcmp(argv[i], "-o") == 0)
-      salida = argv[++i];
+      fichero_final = argv[++i];
     else if (i + 1 < argc && strcmp(argv[i], "-k") == 0)
       strncpy((char *)clave, argv[++i], 13);
   }
 
-  if (!modo || !entrada || !salida || strcmp(entrada, salida) == 0) {
-    fprintf(stderr, "Uso: %s -c|-d -i entrada -o salida -k clave\n", argv[0]);
+  if (!modo || !fichero_inicial || !fichero_final ||
+      strcmp(fichero_inicial, fichero_final) == 0) {
+    fprintf(stderr,
+            "Uso: %s -c|-d -i fichero_inicial -o fichero_final -k clave\n",
+            argv[0]);
     return 2;
   }
   inicializar_registro(clave);
-  return procesar(modo, entrada, salida);
+
+  // Trabajamos con los modos
+  if (modo == 1) {
+    return cifrar(fichero_inicial, fichero_final);
+  } else if (modo == 2) {
+    return descifrar(fichero_inicial, fichero_final);
+  }
 }

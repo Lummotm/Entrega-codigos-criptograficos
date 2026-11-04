@@ -41,10 +41,13 @@ int archivo_existe(const char *filename) {
 
 // Limpiar cosas post fgets y scanf
 void limpiar(void) {
+  // Si standar input es feof entonces estamos en Ctrl+D salimos
   if (feof(stdin)) {
     printf("\nEntrada cerrada, saliendo.\n");
     exit(1);
   }
+
+  // Limpiar basura si se escribe algo que no debería
   int hh;
   while ((hh = getchar()) != '\n' && hh != EOF)
     ;
@@ -66,7 +69,6 @@ void pedir_modo(int *modo) {
 }
 
 void pedir_ficheros(char *fichero_inicial, char *fichero_final) {
-
   // Pedimos fichero de entrada
   printf("\nEscriba el nombre del fichero de entrada: ");
   scanf("%299s", fichero_inicial);
@@ -93,6 +95,7 @@ void pedir_ficheros(char *fichero_inicial, char *fichero_final) {
     limpiar();
   }
 }
+
 void pedir_clave(unsigned char *clave) {
   printf("\nEscriba la clave (maximo 13 chars): ");
   printf("\nSi la clave es mayor a 13 caracteres se truncara.");
@@ -123,7 +126,7 @@ void inicializar_registro(unsigned char *clave) {
     avance();
 }
 
-int procesar(int modo, char *fichero_inicial, char *fichero_final) {
+int cifrar(char *fichero_inicial, char *fichero_final) {
   // La asignacion a unsigned char reduce el resultado modulo 256
   unsigned char leocaracter, escribocaracter, cifrante;
 
@@ -146,27 +149,69 @@ int procesar(int modo, char *fichero_inicial, char *fichero_final) {
 
   // fread devuelve 1 si ha leido un byte correctamente
   while (fread(&leocaracter, sizeof(leocaracter), 1, fientrada) == 1) {
+
+    cifrante = (unsigned char)registro[12];
+    if (cifrante % 2 == 0) {
+      // e_n = m_n + c_n (cifrar)
+      escribocaracter = leocaracter + cifrante;
+    } else {
+      int indice = obtener_indice(cifrante);
+
+      if (indice != -1) {
+        // Producto por el impar (cifrar)
+        escribocaracter = leocaracter * cifrante;
+      } else {
+        // Suma bit a bit (XOR): igual para cifrar y descifrar
+        escribocaracter = leocaracter ^ cifrante;
+      }
+    }
+
+    fwrite(&escribocaracter, sizeof(escribocaracter), 1, fisalida);
+    avance();
+  }
+
+  fclose(fisalida);
+  fclose(fientrada);
+
+  return 0;
+}
+
+int descifrar(char *fichero_inicial, char *fichero_final) {
+  // La asignacion a unsigned char reduce el resultado modulo 256
+  unsigned char leocaracter, escribocaracter, cifrante;
+
+  // Abrir fichero de entrada
+  FILE *fientrada;
+  fientrada = fopen(fichero_inicial, "rb");
+  if (fientrada == NULL) {
+    printf("\n[ERROR]: no he podido abrir el fichero de entrada");
+    return 1;
+  }
+
+  // Abrir fichero de salida
+  FILE *fisalida;
+  fisalida = fopen(fichero_final, "wb");
+  if (fisalida == NULL) {
+    fclose(fientrada);
+    printf("\n[ERROR]: no he podido abrir el fichero de salida");
+    return 1;
+  }
+
+  while (fread(&leocaracter, sizeof(leocaracter), 1, fientrada) == 1) {
+
     cifrante = (unsigned char)registro[12];
 
     // Cifrante par: suma. Cifrante impar de la lista: producto. Resto: XOR
-
     if (cifrante % 2 == 0) {
-      // e_n = m_n + c_n (cifrar) y  m_n = e_n - c_n (descifrar)
-      if (modo == 1)
-        escribocaracter = leocaracter + cifrante;
-      else
-        escribocaracter = leocaracter - cifrante;
+      // m_n = e_n - c_n
+      escribocaracter = leocaracter - cifrante;
 
     } else {
       int indice = obtener_indice(cifrante);
 
       if (indice != -1) {
-        // Producto por el impar (cifrar) o su inverso (descifrar)
-
-        if (modo == 1)
-          escribocaracter = leocaracter * cifrante;
-        else
-          escribocaracter = leocaracter * inversos[indice];
+        // Producto por el inverso de  inverso
+        escribocaracter = leocaracter * inversos[indice];
 
       } else {
         // Suma bit a bit (XOR): igual para cifrar y descifrar
@@ -198,6 +243,10 @@ int main(void) {
   // Inicializado del registro
   inicializar_registro(clave);
 
-  // Procesado, si funciona bien devuelve 0 si falla 1
-  return procesar(modo, fichero_inicial, fichero_final);
+  // Trabajamos con los modos
+  if (modo == 1) {
+    return cifrar(fichero_inicial, fichero_final);
+  } else {
+    return descifrar(fichero_inicial, fichero_final);
+  }
 }

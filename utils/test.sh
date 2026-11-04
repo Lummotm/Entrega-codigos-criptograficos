@@ -41,9 +41,11 @@ head -c 1024 /dev/zero | tr '\0' '\377' >"$FILE1"
 test "todo 0xFF (1024 bytes)"
 
 # Test con urandom
-SIZE=10000000
+SIZE=10485760 # 10 MB
+SIZE=$((SIZE * 10))
 head -c $SIZE /dev/urandom >"$FILE1"
-test "urandom $SIZE bytes"
+READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
+test "urandom $READABLE bytes"
 
 if [ "$fail" -eq 0 ]; then
   echo

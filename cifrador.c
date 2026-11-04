@@ -190,7 +190,7 @@ int main(void) {
   unsigned char clave[14] = "";
   int modo = 0;
 
-  // Parsing de los datos
+  // Obtención de argumentos
   pedir_modo(&modo);
   pedir_ficheros(fichero_inicial, fichero_final);
   pedir_clave(clave);

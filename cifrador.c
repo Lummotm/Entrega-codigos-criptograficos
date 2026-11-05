@@ -149,19 +149,20 @@ int cifrar(char *fichero_inicial, char *fichero_final) {
 
   // fread devuelve 1 si ha leido un byte correctamente
   while (fread(&leocaracter, sizeof(leocaracter), 1, fientrada) == 1) {
-
     cifrante = (unsigned char)registro[12];
-    if (cifrante % 2 == 0) {
-      // e_n = m_n + c_n (cifrar)
-      escribocaracter = leocaracter + cifrante;
-    } else {
-      int indice = obtener_indice(cifrante);
 
-      if (indice != -1) {
-        // Producto por el impar (cifrar)
+    // Cifrante par: suma. Impar de la lista: producto. Resto: XOR
+    if (cifrante % 2 == 0) {
+      // e_n = m_n + c_n
+      escribocaracter = leocaracter + cifrante;
+
+    } else {
+      // Si esta en el rango de impares que queremos hacemos el producto
+      if (cifrante >= 5 && cifrante <= 21) {
         escribocaracter = leocaracter * cifrante;
+
       } else {
-        // Suma bit a bit (XOR): igual para cifrar y descifrar
+        // e_n = m_n XOR c_n
         escribocaracter = leocaracter ^ cifrante;
       }
     }
@@ -177,7 +178,6 @@ int cifrar(char *fichero_inicial, char *fichero_final) {
 }
 
 int descifrar(char *fichero_inicial, char *fichero_final) {
-  // La asignacion a unsigned char reduce el resultado modulo 256
   unsigned char leocaracter, escribocaracter, cifrante;
 
   // Abrir fichero de entrada
@@ -198,23 +198,22 @@ int descifrar(char *fichero_inicial, char *fichero_final) {
   }
 
   while (fread(&leocaracter, sizeof(leocaracter), 1, fientrada) == 1) {
-
     cifrante = (unsigned char)registro[12];
 
-    // Cifrante par: suma. Cifrante impar de la lista: producto. Resto: XOR
+    // Cifrante par: resta. Impar de la lista: producto por su inverso. Resto:
+    // XOR
     if (cifrante % 2 == 0) {
       // m_n = e_n - c_n
       escribocaracter = leocaracter - cifrante;
-
     } else {
-      int indice = obtener_indice(cifrante);
 
-      if (indice != -1) {
-        // Producto por el inverso de  inverso
+      if (cifrante >= 5 && cifrante <= 21) {
+        // Si esta en el rango de impares que queremos buscamos
+        // indice de su inverso y operamos
+        int indice = obtener_indice(cifrante);
         escribocaracter = leocaracter * inversos[indice];
-
       } else {
-        // Suma bit a bit (XOR): igual para cifrar y descifrar
+        // m_n = e_n XOR c_n (igual que al cifrar)
         escribocaracter = leocaracter ^ cifrante;
       }
     }

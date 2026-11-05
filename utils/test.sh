@@ -9,23 +9,32 @@ mkdir -p files
 
 fail=0
 
-test() {
-  local desc="$1"
+# Ejecuta un comando y devuelve por pantalla el tiempo en segundos
+medir() {
+  local t0 t1
+  t0=$(date +%s.%N)
+  "$@" >/dev/null || return 1
+  t1=$(date +%s.%N)
+  awk "BEGIN {printf \"%.2f\", $t1 - $t0}"
+}
 
-  if ! ./main_tests -c -i "$FILE1" -o "$FILE2" -k "$KEY" >/dev/null; then
+test() {
+  local desc="$1" t_cif t_des
+
+  if ! t_cif=$(medir ./main_tests -c -i "$FILE1" -o "$FILE2" -k "$KEY"); then
     echo " FAIL (cifrado)  $desc"
     fail=1
     return
   fi
 
-  if ! ./main_tests -d -i "$FILE2" -o "$FILE3" -k "$KEY" >/dev/null; then
+  if ! t_des=$(medir ./main_tests -d -i "$FILE2" -o "$FILE3" -k "$KEY"); then
     echo " FAIL (descifrado) $desc"
     fail=1
     return
   fi
 
   if cmp -s "$FILE1" "$FILE3"; then
-    echo " OK   $desc"
+    echo " OK   $desc  (cifrado ${t_cif}s, descifrado ${t_des}s)"
   else
     echo " FAIL (no coinciden) $desc"
     fail=1
@@ -40,9 +49,29 @@ test "todo ceros (1024 bytes)"
 head -c 1024 /dev/zero | tr '\0' '\377' >"$FILE1"
 test "todo 0xFF (1024 bytes)"
 
-# Test con urandom
+# Tests con urandom
+
 SIZE=10485760 # 10 MB
-SIZE=$((SIZE * 10))
+head -c $SIZE /dev/urandom >"$FILE1"
+READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
+test "urandom $READABLE bytes"
+
+SIZE=$((10485760 * 5)) # 50 MB
+head -c $SIZE /dev/urandom >"$FILE1"
+READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
+test "urandom $READABLE bytes"
+
+SIZE=104857600 # 100 MB
+head -c $SIZE /dev/urandom >"$FILE1"
+READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
+test "urandom $READABLE bytes"
+
+SIZE=$((104857600 * 5)) # 500 MB
+head -c $SIZE /dev/urandom >"$FILE1"
+READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
+test "urandom $READABLE bytes"
+
+SIZE=1048576000 # 1000 MB
 head -c $SIZE /dev/urandom >"$FILE1"
 READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
 test "urandom $READABLE bytes"

@@ -41,16 +41,15 @@ int archivo_existe(const char *filename) {
 
 // Limpiar cosas post fgets y scanf
 void limpiar(void) {
-  // Si standar input es feof entonces estamos en Ctrl+D salimos
-  if (feof(stdin)) {
+  // Limpiar basura si se escribe algo que no debería
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF)
+    ;
+
+  if (c == EOF) {
     printf("\nEntrada cerrada, saliendo.\n");
     exit(1);
   }
-
-  // Limpiar basura si se escribe algo que no debería
-  int hh;
-  while ((hh = getchar()) != '\n' && hh != EOF)
-    ;
 }
 
 void pedir_modo(int *modo) {
@@ -152,13 +151,14 @@ int cifrar(char *fichero_inicial, char *fichero_final) {
     cifrante = (unsigned char)registro[12];
 
     // Cifrante par: suma. Impar de la lista: producto. Resto: XOR
-    if (cifrante % 2 == 0) {
+    if (cifrante % 2 == 0 && cifrante <= 250) {
       // e_n = m_n + c_n
       escribocaracter = leocaracter + cifrante;
 
     } else {
       // Si esta en el rango de impares que queremos hacemos el producto
       if (cifrante >= 5 && cifrante <= 21) {
+
         escribocaracter = leocaracter * cifrante;
 
       } else {
@@ -202,16 +202,18 @@ int descifrar(char *fichero_inicial, char *fichero_final) {
 
     // Cifrante par: resta. Impar de la lista: producto por su inverso. Resto:
     // XOR
-    if (cifrante % 2 == 0) {
+
+    if (cifrante % 2 == 0 && cifrante <= 250) {
       // m_n = e_n - c_n
       escribocaracter = leocaracter - cifrante;
-    } else {
 
+    } else {
       if (cifrante >= 5 && cifrante <= 21) {
         // Si esta en el rango de impares que queremos buscamos
         // indice de su inverso y operamos
         int indice = obtener_indice(cifrante);
         escribocaracter = leocaracter * inversos[indice];
+
       } else {
         // m_n = e_n XOR c_n (igual que al cifrar)
         escribocaracter = leocaracter ^ cifrante;
@@ -245,6 +247,7 @@ int main(void) {
   // Trabajamos con los modos
   if (modo == 1) {
     return cifrar(fichero_inicial, fichero_final);
+
   } else {
     return descifrar(fichero_inicial, fichero_final);
   }

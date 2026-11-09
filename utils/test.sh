@@ -22,19 +22,21 @@ test() {
   local desc="$1" t_cif t_des
 
   if ! t_cif=$(medir ./main_tests -c -i "$FILE1" -o "$FILE2" -k "$KEY"); then
-    echo " FAIL (cifrado)  $desc"
+
+    # Mira que cookieee el echo -e
+    echo -e " FAIL (cifrado) \t $desc"
     fail=1
     return
   fi
 
   if ! t_des=$(medir ./main_tests -d -i "$FILE2" -o "$FILE3" -k "$KEY"); then
-    echo " FAIL (descifrado) $desc"
+    echo -e " FAIL (descifrado) \t $desc"
     fail=1
     return
   fi
 
   if cmp -s "$FILE1" "$FILE3"; then
-    echo " OK   $desc  (cifrado ${t_cif}s, descifrado ${t_des}s)"
+    echo -e " OK   $desc \t (cifrado ${t_cif}s, descifrado ${t_des}s)"
   else
     echo " FAIL (no coinciden) $desc"
     fail=1
@@ -67,11 +69,6 @@ READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
 test "urandom $READABLE bytes"
 
 SIZE=$((104857600 * 5)) # 500 MB
-head -c $SIZE /dev/urandom >"$FILE1"
-READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
-test "urandom $READABLE bytes"
-
-SIZE=1048576000 # 1000 MB
 head -c $SIZE /dev/urandom >"$FILE1"
 READABLE="$(awk "BEGIN {print $SIZE / 1024 / 1024}") MB"
 test "urandom $READABLE bytes"

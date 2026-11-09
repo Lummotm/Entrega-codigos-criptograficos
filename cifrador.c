@@ -108,8 +108,6 @@ void pedir_clave(unsigned char *clave) {
   } else {
     exit(1);
   }
-
-  printf("\nLa clave es: %s", clave);
 }
 
 void inicializar_registro(unsigned char *clave) {
@@ -151,7 +149,7 @@ int cifrar(char *fichero_inicial, char *fichero_final) {
     cifrante = (unsigned char)registro[12];
 
     // Cifrante par: suma. Impar de la lista: producto. Resto: XOR
-    if (cifrante % 2 == 0 && cifrante <= 250) {
+    if (cifrante % 2 == 0) {
       // e_n = m_n + c_n
       escribocaracter = leocaracter + cifrante;
 
@@ -203,7 +201,7 @@ int descifrar(char *fichero_inicial, char *fichero_final) {
     // Cifrante par: resta. Impar de la lista: producto por su inverso. Resto:
     // XOR
 
-    if (cifrante % 2 == 0 && cifrante <= 250) {
+    if (cifrante % 2 == 0) {
       // m_n = e_n - c_n
       escribocaracter = leocaracter - cifrante;
 

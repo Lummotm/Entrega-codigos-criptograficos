@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Registro de 13 posiciones que genera la sucesion cifrante c_n.
 static short int registro[13] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5};
 
-// Listas con los valores "especiales"
+// Impares de la operacion de producto y sus inversos módulo 256.
+// inversos[i] es el inverso de impares[i].
 static const unsigned char impares[9] = {5, 7, 9, 11, 13, 15, 17, 19, 21};
 static const unsigned char inversos[9] = {205, 183, 57, 163, 197,
                                           239, 241, 27, 61};
 
-// Devuelve el índice de c en impares[], o -1 si no está
-// Hago busqueda lineal ya que los arrays son muy pequeños
 int obtener_indice(unsigned char c) {
   for (int i = 0; i < 9; i++)
     if (impares[i] == c)
@@ -18,6 +18,7 @@ int obtener_indice(unsigned char c) {
   return -1;
 }
 
+// Avanza el registro un paso.
 void avance(void) {
   short int bb, jj;
 
@@ -30,18 +31,18 @@ void avance(void) {
   registro[12] = bb;
 }
 
-// Revisa si el archivo existe
+// Comprueba si el fichero existe y se puede abrir para leer.
 int archivo_existe(const char *filename) {
   FILE *file = fopen(filename, "r");
   if (file == NULL)
-    return 0; // No existe
+    return 0;
   fclose(file);
-  return 1; // Existe
+  return 1;
 }
 
-// Limpiar cosas post fgets y scanf
+// Descarta lo que quede en la entrada hasta el salto de línea.
+// Si la entrada se cierra (EOF), termina el programa.
 void limpiar(void) {
-  // Limpiar basura si se escribe algo que no debería
   int c;
   while ((c = getchar()) != '\n' && c != EOF)
     ;
@@ -52,8 +53,8 @@ void limpiar(void) {
   }
 }
 
+// Pide al usuario si quiere cifrar (1) o descifrar (2).
 void pedir_modo(int *modo) {
-  // Pedimos modo
   printf("Que desea hacer?\n");
   printf("1) Cifrar\n2) Descifrar\n");
   printf("Opcion: ");
@@ -67,8 +68,9 @@ void pedir_modo(int *modo) {
   }
 }
 
+// Pide el fichero de entrada (debe existir) y el de salida (distinto del de
+// entrada).
 void pedir_ficheros(char *fichero_inicial, char *fichero_final) {
-  // Pedimos fichero de entrada
   printf("\nEscriba el nombre del fichero de entrada: ");
   scanf("%299s", fichero_inicial);
   limpiar();
@@ -80,13 +82,11 @@ void pedir_ficheros(char *fichero_inicial, char *fichero_final) {
     limpiar();
   }
 
-  // Pedimos fichero de salida
   printf("\nEscriba el nombre del fichero de salida: ");
   scanf("%299s", fichero_final);
   limpiar();
 
-  // Fichero de salida y entrada no pueden ser el mismo (perderiamos ficheros no
-  // es buena idea permitir eso)
+  // Si la salida fuera la entrada, se perderian los datos originales.
   while (strcmp(fichero_final, fichero_inicial) == 0) {
     printf("\n[ERROR] Fichero inicial y final no pueden ser los mismos. ");
     printf("\nIntroduce nombre de fichero de salida: ");
@@ -102,14 +102,19 @@ void pedir_clave(unsigned char *clave) {
   if (fgets((char *)clave, 14, stdin) != NULL) {
     int len = strlen((char *)clave);
     if (len > 0 && clave[len - 1] == '\n')
-      clave[len - 1] = '\0'; // Clave mas corta de 13
+      // La clave cabe completa: quitamos el salto de línea.
+      clave[len - 1] = '\0';
     else
-      limpiar(); // Clave de más de 13
+      // No había salto de línea: la clave era más larga.
+      // Descartamos el resto de la línea.
+      limpiar();
   } else {
     exit(1);
   }
 }
 
+// Carga los primeros caracteres de la clave en el registro y avanza
+// k = registro[3] pasos antes de cifrar o descifrar.
 void inicializar_registro(unsigned char *clave) {
   int j, k;
   for (j = 0; j <= 12; j++) {
@@ -123,8 +128,11 @@ void inicializar_registro(unsigned char *clave) {
     avance();
 }
 
+// Cifra el fichero de entrada en el de salida.
 int cifrar(char *fichero_inicial, char *fichero_final) {
-  // La asignacion a unsigned char reduce el resultado modulo 256
+
+  // Al asignar a unsigned char, la suma y el producto se reducen módulo 256.
+  // No necesitamos operaciones extra
   unsigned char leocaracter, escribocaracter, cifrante;
 
   // Abrir fichero de entrada
@@ -144,23 +152,22 @@ int cifrar(char *fichero_inicial, char *fichero_final) {
     return 1;
   }
 
-  // fread devuelve 1 si ha leido un byte correctamente
+  // fread devuelve 1 mientras quede un byte por leer.
   while (fread(&leocaracter, sizeof(leocaracter), 1, fientrada) == 1) {
     cifrante = (unsigned char)registro[12];
 
-    // Cifrante par: suma. Impar de la lista: producto. Resto: XOR
     if (cifrante % 2 == 0) {
-      // e_n = m_n + c_n
+      // Par: e_n = m_n + c_n
       escribocaracter = leocaracter + cifrante;
 
     } else {
-      // Si esta en el rango de impares que queremos hacemos el producto
+      // Impar de la lista {5, ..., 21}: e_n = m_n * c_n
       if (cifrante >= 5 && cifrante <= 21) {
 
         escribocaracter = leocaracter * cifrante;
 
       } else {
-        // e_n = m_n XOR c_n
+        // Resto: e_n = m_n XOR c_n
         escribocaracter = leocaracter ^ cifrante;
       }
     }
@@ -175,7 +182,11 @@ int cifrar(char *fichero_inicial, char *fichero_final) {
   return 0;
 }
 
+// Descifra el fichero de entrada en el de salida.
 int descifrar(char *fichero_inicial, char *fichero_final) {
+
+  // Al asignar a unsigned char, la suma y el producto se reducen módulo 256.
+  // No necesitamos operaciones extra
   unsigned char leocaracter, escribocaracter, cifrante;
 
   // Abrir fichero de entrada
@@ -195,25 +206,22 @@ int descifrar(char *fichero_inicial, char *fichero_final) {
     return 1;
   }
 
+  // fread devuelve 1 mientras quede un byte por leer.
   while (fread(&leocaracter, sizeof(leocaracter), 1, fientrada) == 1) {
     cifrante = (unsigned char)registro[12];
 
-    // Cifrante par: resta. Impar de la lista: producto por su inverso. Resto:
-    // XOR
-
     if (cifrante % 2 == 0) {
-      // m_n = e_n - c_n
+      // Par: m_n = e_n - c_n
       escribocaracter = leocaracter - cifrante;
 
     } else {
+      // Impar de la lista: m_n = e_n * inverso(c_n)
       if (cifrante >= 5 && cifrante <= 21) {
-        // Si esta en el rango de impares que queremos buscamos
-        // indice de su inverso y operamos
         int indice = obtener_indice(cifrante);
         escribocaracter = leocaracter * inversos[indice];
 
       } else {
-        // m_n = e_n XOR c_n (igual que al cifrar)
+        // Resto: m_n = e_n XOR c_n
         escribocaracter = leocaracter ^ cifrante;
       }
     }
@@ -234,15 +242,12 @@ int main(void) {
   unsigned char clave[14] = "";
   int modo = 0;
 
-  // Obtención de argumentos
   pedir_modo(&modo);
   pedir_ficheros(fichero_inicial, fichero_final);
   pedir_clave(clave);
 
-  // Inicializado del registro
   inicializar_registro(clave);
 
-  // Trabajamos con los modos
   if (modo == 1) {
     return cifrar(fichero_inicial, fichero_final);
 

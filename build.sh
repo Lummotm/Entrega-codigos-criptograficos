@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 TARGET="main"
 SRC="cifrador.c"
 AUTHOR_FILE="utils/author.txt"
-ARCHIVO_ENTREGA="cifrador__68.c" # nombre dentro del zip
+ARCHIVO_ENTREGA="NikolovYordanovDavid_Ejercicio_18.c"
 TEST_SRC="cifrador-tests.c"
 TEST_BIN="main_tests"
 TEST_FILE="utils/test.sh"
@@ -20,7 +20,7 @@ compile_tests() { "$CC" $CFLAGS "$TEST_SRC" -o "$TEST_BIN"; }
 
 # Limpiar
 clean() {
-  rm -f "$TARGET" "$ZIP_NAME" *~ *.c_entrega
+  rm -f "$TARGET" "$ZIP_NAME" *~ *.c_entrega || True
   rm main_*
   rm -rf "$TMP_DIR"
 }
